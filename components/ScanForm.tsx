@@ -181,8 +181,16 @@ export function ScanForm() {
         </form>
 
         {isStreaming && (
-          <div className="mt-6 flex items-center gap-2.5 text-[13px] text-steel">
-            <span className="h-1.5 w-1.5 animate-pulse-quiet rounded-full bg-graphite" aria-hidden />
+          <div className="mt-6 flex items-center gap-3 text-[13px] text-steel">
+            <video
+              src="/Animation.mp4"
+              autoPlay
+              muted
+              loop
+              playsInline
+              className="h-10 w-10 shrink-0 rounded-full object-cover"
+              aria-hidden
+            />
             {totalTasks > 0
               ? `${resolved} of ${totalTasks} miners have answered…`
               : "Reading the message and finding what to check…"}

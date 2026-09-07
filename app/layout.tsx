@@ -29,6 +29,10 @@ export const metadata: Metadata = {
   title: "Scam Shield — a verdict from 20 independent sources",
   description:
     "Paste a suspicious message, email, or link. Scam Shield pays 20+ independent Telegraph miners to check it and hands back one plain verdict, with every finding shown.",
+  icons: {
+    icon: "/icon.png",
+    apple: "/apple-icon.png",
+  },
 };
 
 const NO_FLASH_THEME_SCRIPT = `

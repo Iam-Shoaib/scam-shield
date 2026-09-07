@@ -2,10 +2,8 @@
 // injects the "Check with Scam Shield" button, and drives the check modal.
 // Never fetches directly — everything goes through the background script.
 
-const SHIELD_ICON = `<svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <path d="M16 2.5 27 6.5v8.2c0 8-4.6 13.4-11 14.8-6.4-1.4-11-6.8-11-14.8V6.5L16 2.5Z" fill="currentColor"/>
-  <path d="M11.5 16.3 14.6 19.4 20.8 12.8" stroke="#fff" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/>
-</svg>`;
+const SHIELD_ICON = `<img src="${browser.runtime.getURL("icons/icon-48.png")}" alt="" width="20" height="20" />`;
+const LOADER_SRC = browser.runtime.getURL("assets/animation.mp4");
 
 const VERDICT_WORD = {
   safe: "Safe.",
@@ -28,7 +26,8 @@ const PRIORITIES = [
 ];
 
 function deriveVariant(scan) {
-  if (scan.calls?.length > 0 && scan.calls.every((c) => !c.ok)) return "inconclusive";
+  const failed = scan.calls?.filter((c) => !c.ok).length ?? 0;
+  if (scan.calls?.length > 0 && failed / scan.calls.length > 0.5) return "inconclusive";
   if (scan.overallVerdict === "SAFE") return "safe";
   if (scan.overallVerdict === "SUSPICIOUS") return "suspicious";
   return "scam";
@@ -144,7 +143,7 @@ function buildModal() {
       </div>
 
       <div id="ss-modal-progress" class="ss-modal-body" hidden>
-        <div class="ss-progress-line"><span class="ss-spinner"></span><span id="ss-progress-text">Reading the message…</span></div>
+        <div class="ss-progress-line"><video class="ss-progress-loader" src="${LOADER_SRC}" autoplay muted loop playsinline></video><span id="ss-progress-text">Reading the message…</span></div>
         <div id="ss-log-list" class="ss-log-list"></div>
       </div>
 

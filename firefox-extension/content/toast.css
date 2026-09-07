@@ -254,10 +254,18 @@
   gap: 8px;
 }
 
-.ss-modal-shield svg {
+.ss-modal-shield img {
+  display: block;
   width: 20px;
   height: 20px;
-  color: var(--ss-safe);
+}
+
+.ss-progress-loader {
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  object-fit: cover;
 }
 
 .ss-modal-title {
