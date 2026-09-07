@@ -1,10 +1,21 @@
 import { runScan } from "@/lib/scam/runScan";
 import { saveScan } from "@/lib/scam/scanStore";
+import { checkRateLimit, clientIpFrom } from "@/lib/scam/rateLimit";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
 
 export async function POST(request: Request) {
+  const rateLimit = checkRateLimit(clientIpFrom(request));
+  if (!rateLimit.allowed) {
+    return new Response(
+      JSON.stringify({
+        error: `Too many checks from this connection — try again in ${rateLimit.retryAfterSeconds}s.`,
+      }),
+      { status: 429, headers: { "Retry-After": String(rateLimit.retryAfterSeconds) } }
+    );
+  }
+
   let body: unknown;
   try {
     body = await request.json();

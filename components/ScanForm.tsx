@@ -114,7 +114,7 @@ export function ScanForm() {
 
   return (
     <div className="space-y-8">
-      <div className="max-w-[680px]">
+      <div>
         <form onSubmit={handleSubmit}>
           <div
             className={`rounded-2xl border bg-paper-raised transition ${
@@ -200,12 +200,10 @@ export function ScanForm() {
 
       {phase === "done" && finalScan && (
         <div className="space-y-4">
-          <div className="max-w-[680px]">
-            <VerdictCard
-              scan={finalScan}
-              permalink={typeof window !== "undefined" ? `${window.location.origin}/scan/${finalScan.id}` : undefined}
-            />
-          </div>
+          <VerdictCard
+            scan={finalScan}
+            permalink={typeof window !== "undefined" ? `${window.location.origin}/scan/${finalScan.id}` : undefined}
+          />
           <EvidenceTable calls={finalScan.calls} />
         </div>
       )}

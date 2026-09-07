@@ -129,4 +129,13 @@ components/          shared UI (VerdictCard, EvidenceTable, Badge, ...)
 lib/telegraph/       miner registry + x402 payment client
 lib/scam/            entity extraction, language detection, scan orchestrator
 docs/screenshots/    README screenshots
+firefox-extension/   Gmail extension — see its own README
 ```
+
+## Firefox extension
+
+`firefox-extension/` adds a "Check with Scam Shield" button directly inside
+Gmail — open an email, click it, and get the same live verdict in a toast,
+with a link to the full report. See
+[`firefox-extension/README.md`](./firefox-extension/README.md) for how to
+load it and how it talks to the API.

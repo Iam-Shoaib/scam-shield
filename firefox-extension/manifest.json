@@ -1,0 +1,33 @@
+{
+  "manifest_version": 3,
+  "name": "Scam Shield for Gmail",
+  "version": "0.1.0",
+  "description": "Check any Gmail email for scams with one click, verified live across 20+ independent Telegraph miners.",
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "scam-shield-gmail@scamshield.app",
+      "strict_min_version": "109.0"
+    }
+  },
+  "icons": {
+    "48": "icons/icon-48.png",
+    "96": "icons/icon-96.png",
+    "128": "icons/icon-128.png"
+  },
+  "background": {
+    "scripts": ["config.js", "background.js"]
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://mail.google.com/*"],
+      "css": ["content/toast.css"],
+      "js": ["content/gmail.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "host_permissions": [
+    "https://mail.google.com/*",
+    "https://scam-shield-rouge.vercel.app/*",
+    "http://localhost:3000/*"
+  ]
+}

@@ -67,6 +67,7 @@ async function askOnce(
   method: "GET" | "POST",
   endpoint: string,
   payload: Record<string, unknown>,
+  signal: AbortSignal,
   extra?: Record<string, unknown>
 ): Promise<Response> {
   const fetchWithPayment = getFetchWithPayment();
@@ -75,6 +76,7 @@ async function askOnce(
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ method, endpoint, payload, ...extra }),
+      signal,
     })
   );
 }
@@ -89,15 +91,16 @@ async function attemptOnce(
   minerId: string,
   method: "GET" | "POST",
   endpoint: string,
-  payload: Record<string, unknown>
+  payload: Record<string, unknown>,
+  signal: AbortSignal
 ): Promise<AttemptOutcome> {
-  let res = await askOnce(nodeUrl, minerId, method, endpoint, payload);
+  let res = await askOnce(nodeUrl, minerId, method, endpoint, payload, signal);
 
   if (res.status === 422) {
     const warningBody = (await res.json().catch(() => null)) as ProceedAnywayBody | null;
     const proceed = warningBody?.proceed_anyway;
     if (proceed?.field) {
-      res = await askOnce(nodeUrl, minerId, method, endpoint, payload, {
+      res = await askOnce(nodeUrl, minerId, method, endpoint, payload, signal, {
         [proceed.field]: proceed.value,
       });
     } else {
@@ -126,6 +129,7 @@ function sleep(ms: number): Promise<void> {
 }
 
 const MAX_PAYMENT_RETRIES = 3;
+const MINER_TIMEOUT_MS = 30_000;
 
 /**
  * Calls a Telegraph miner through the paid Engine endpoint. Never throws —
@@ -139,6 +143,14 @@ const MAX_PAYMENT_RETRIES = 3;
  * - A bare 402 even with a payment signature attached, which in practice is
  *   a settlement race from concurrent payments off the same wallet rather
  *   than a real decline — a fresh signature/nonce usually clears it.
+ *
+ * The whole call — including retries — is bounded to MINER_TIMEOUT_MS. One
+ * AbortController spans the entire attempt: x402's fetch wrapper clones the
+ * initial Request for its own internal payment retry, and a clone shares
+ * its parent's AbortSignal, so aborting here cancels whichever request
+ * (probe or paid retry) is actually in flight and frees payments's
+ * strictly-sequential queue for the next miner — a hung miner no longer
+ * blocks every call behind it.
  */
 export async function callMiner(
   minerId: string,
@@ -149,12 +161,15 @@ export async function callMiner(
   const nodeUrl = process.env.TELEGRAPH_NODE_URL ?? "https://devnode.telegraphprotocol.com";
   const started = Date.now();
 
+  const controller = new AbortController();
+  const timeoutTimer = setTimeout(() => controller.abort(), MINER_TIMEOUT_MS);
+
   try {
-    let outcome = await attemptOnce(nodeUrl, minerId, method, endpoint, payload);
+    let outcome = await attemptOnce(nodeUrl, minerId, method, endpoint, payload, controller.signal);
 
     for (let attempt = 0; outcome.kind === "payment-failed" && attempt < MAX_PAYMENT_RETRIES; attempt++) {
       await sleep(500 * (attempt + 1) + Math.random() * 400);
-      outcome = await attemptOnce(nodeUrl, minerId, method, endpoint, payload);
+      outcome = await attemptOnce(nodeUrl, minerId, method, endpoint, payload, controller.signal);
     }
 
     const duration_ms = Date.now() - started;
@@ -185,12 +200,19 @@ export async function callMiner(
       signal_hash: body.signal_hash ?? null,
     };
   } catch (err) {
+    const timedOut = err instanceof Error && err.name === "AbortError";
     return {
       ok: false,
       minerId,
       minerName: null,
-      error: err instanceof Error ? err.message : String(err),
+      error: timedOut
+        ? `Timed out waiting for a response after ${MINER_TIMEOUT_MS / 1000}s.`
+        : err instanceof Error
+          ? err.message
+          : String(err),
       duration_ms: Date.now() - started,
     };
+  } finally {
+    clearTimeout(timeoutTimer);
   }
 }

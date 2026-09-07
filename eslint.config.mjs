@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // A separate, non-Next.js codebase (browser globals, classic scripts).
+    "firefox-extension/**",
   ]),
 ]);
 

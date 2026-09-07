@@ -169,6 +169,40 @@ body {
   outline-offset: 2px;
 }
 
+/* Themed scrollbars + textarea resize handle, so both match the rest of
+   the UI instead of the browser's stark default grey. */
+textarea,
+.themed-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-default) transparent;
+}
+
+textarea::-webkit-scrollbar,
+.themed-scroll::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+textarea::-webkit-scrollbar-track,
+.themed-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+textarea::-webkit-scrollbar-thumb,
+.themed-scroll::-webkit-scrollbar-thumb {
+  background: var(--border-default);
+  border-radius: 999px;
+}
+
+textarea::-webkit-scrollbar-thumb:hover,
+.themed-scroll::-webkit-scrollbar-thumb:hover {
+  background: var(--steel);
+}
+
+textarea::-webkit-resizer {
+  background: var(--paper-raised);
+}
+
 @keyframes rise-in {
   from {
     opacity: 0;

@@ -52,7 +52,7 @@ export function EvidenceTable({ calls, live = false }: { calls: MinerCallRecord[
           overflow-x-auto is a safety net, not the primary layout — table-fixed
           + the column widths below are sized to fit without scrolling at the
           widths this table is actually rendered at. */}
-      <div className="hidden overflow-x-auto rounded-lg border border-border-default bg-paper-raised sm:block">
+      <div className="themed-scroll hidden overflow-x-auto rounded-lg border border-border-default bg-paper-raised sm:block">
         <table className="w-full min-w-[900px] table-fixed text-left text-[13.5px]">
           <colgroup>
             <col className="w-[12%]" />

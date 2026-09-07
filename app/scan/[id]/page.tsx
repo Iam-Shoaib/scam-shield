@@ -43,7 +43,7 @@ export default async function ScanPage({ params }: { params: Promise<{ id: strin
 
   return (
     <div className="mx-auto w-full max-w-[1320px] space-y-6 px-5 py-14 sm:px-8">
-      <div className="max-w-[760px]">
+      <div>
         <p className="text-[13px] text-steel">Submitted message</p>
         <blockquote className="mt-2 border-l-2 border-border-default py-1 pl-4 font-display text-[19px] italic leading-[1.5] text-graphite/90">
           &ldquo;{scan.inputText}&rdquo;

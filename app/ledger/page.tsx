@@ -64,7 +64,7 @@ export default async function LedgerPage() {
           .
         </div>
       ) : (
-        <div className="overflow-x-auto rounded-lg border border-border-default bg-paper-raised">
+        <div className="themed-scroll overflow-x-auto rounded-lg border border-border-default bg-paper-raised">
           <table className="w-full min-w-[640px] text-left text-[14px]">
             <thead>
               <tr className="text-[12px] text-steel">
