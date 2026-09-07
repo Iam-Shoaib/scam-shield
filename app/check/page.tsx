@@ -7,7 +7,7 @@ export const metadata: Metadata = {
 
 export default function CheckPage() {
   return (
-    <div className="mx-auto w-full max-w-[1320px] px-5 py-14 sm:px-8 sm:py-20">
+    <div className="mx-auto w-full max-w-[1140px] px-5 py-14 sm:px-8 sm:py-20">
       <div className="mb-10 max-w-[680px] space-y-4">
         <h1 className="font-display text-[38px] leading-[1.1] text-graphite sm:text-[46px]">
           Get a straight answer, from twenty places that don&rsquo;t agree on much.

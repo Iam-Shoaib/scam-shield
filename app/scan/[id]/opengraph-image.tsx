@@ -21,7 +21,8 @@ const WORD: Record<DisplayVerdict, string> = {
 };
 
 export default async function Image({ params }: { params: { id: string } }) {
-  const scan = await getScanById(params.id);
+  const result = await getScanById(params.id);
+  const scan = result && !("status" in result) ? result : null;
   const variant = scan ? deriveDisplayVerdict(scan) : "suspicious";
   const colors = COLORS[variant];
 

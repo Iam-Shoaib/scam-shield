@@ -13,19 +13,50 @@ function toScanResult(doc: ScanDocument & { _id: ObjectId }): ScanResult {
   return { ...rest, id: _id.toHexString() };
 }
 
-export async function saveScan(scan: ScanResult): Promise<string> {
+export type PendingScan = { id: string; status: "pending"; createdAt: string; inputText: string };
+
+/**
+ * Inserted the moment a scan starts, before any miner has been called, so
+ * the extension (whose background page can be evicted mid-stream by
+ * Firefox's idle timer) has a stable /scan/{id} link to fall back to even
+ * if it never hears the final result itself — the scan keeps running and
+ * finalizing server-side either way.
+ */
+export async function createPendingScan(inputText: string): Promise<string> {
+  const db = await getDb();
+  const _id = new ObjectId();
+  await db.collection(COLLECTION).insertOne({
+    _id,
+    status: "pending",
+    createdAt: new Date().toISOString(),
+    inputText,
+  });
+  return _id.toHexString();
+}
+
+/** Removes a pending placeholder if the scan fails before finishing, so its link 404s instead of hanging as "still checking" forever. */
+export async function deletePendingScan(id: string): Promise<void> {
+  if (!ObjectId.isValid(id)) return;
+  const db = await getDb();
+  await db.collection(COLLECTION).deleteOne({ _id: new ObjectId(id), status: "pending" });
+}
+
+export async function finalizeScan(id: string, scan: ScanResult): Promise<void> {
   const db = await getDb();
   const doc: ScanDocument = { ...scan };
   delete (doc as { id?: string }).id;
-  const result = await db.collection<ScanDocument>(COLLECTION).insertOne(doc);
-  return result.insertedId.toHexString();
+  await db.collection<ScanDocument>(COLLECTION).replaceOne({ _id: new ObjectId(id) }, doc, { upsert: true });
 }
 
-export async function getScanById(id: string): Promise<ScanResult | null> {
+export async function getScanById(id: string): Promise<ScanResult | PendingScan | null> {
   if (!ObjectId.isValid(id)) return null;
   const db = await getDb();
-  const doc = await db.collection<ScanDocument>(COLLECTION).findOne({ _id: new ObjectId(id) });
-  return doc ? toScanResult(doc as ScanDocument & { _id: ObjectId }) : null;
+  const doc = await db.collection(COLLECTION).findOne({ _id: new ObjectId(id) });
+  if (!doc) return null;
+  if (doc.status === "pending") {
+    return { id: doc._id.toHexString(), status: "pending", createdAt: doc.createdAt, inputText: doc.inputText };
+  }
+  return toScanResult(doc as ScanDocument & { _id: ObjectId });
 }
 
 export async function listScans(opts: { cursor?: string; limit?: number } = {}): Promise<{
@@ -34,10 +65,13 @@ export async function listScans(opts: { cursor?: string; limit?: number } = {}):
 }> {
   const limit = Math.min(opts.limit ?? 20, 100);
   const db = await getDb();
-  const query = opts.cursor && ObjectId.isValid(opts.cursor) ? { _id: { $lt: new ObjectId(opts.cursor) } } : {};
+  const query = {
+    status: { $ne: "pending" },
+    ...(opts.cursor && ObjectId.isValid(opts.cursor) ? { _id: { $lt: new ObjectId(opts.cursor) } } : {}),
+  };
 
   const docs = await db
-    .collection<ScanDocument>(COLLECTION)
+    .collection(COLLECTION)
     .find(query)
     .sort({ _id: -1 })
     .limit(limit + 1)
@@ -76,6 +110,7 @@ export async function getStats(): Promise<ScamShieldStats> {
       suspiciousCount: number;
       safeCount: number;
     }>([
+      { $match: { status: { $ne: "pending" } } },
       {
         $group: {
           _id: null,

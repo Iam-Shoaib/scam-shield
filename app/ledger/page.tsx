@@ -26,7 +26,7 @@ export default async function LedgerPage() {
   const [stats, page] = await Promise.all([getStats(), listScans({ limit: 50 })]);
 
   return (
-    <div className="mx-auto w-full max-w-[1320px] space-y-10 px-5 py-14 sm:px-8">
+    <div className="mx-auto w-full max-w-[1140px] space-y-10 px-5 py-14 sm:px-8">
       <div>
         <h1 className="font-display text-[32px] text-graphite">Public ledger</h1>
         <p className="mt-2 max-w-[62ch] text-[15px] text-steel">

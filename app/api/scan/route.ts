@@ -1,5 +1,5 @@
 import { runScan } from "@/lib/scam/runScan";
-import { saveScan } from "@/lib/scam/scanStore";
+import { createPendingScan, deletePendingScan, finalizeScan } from "@/lib/scam/scanStore";
 import { checkRateLimit, clientIpFrom } from "@/lib/scam/rateLimit";
 
 export const runtime = "nodejs";
@@ -45,20 +45,28 @@ export async function POST(request: Request) {
         controller.enqueue(encoder.encode(JSON.stringify(line) + "\n"));
       };
 
+      // Created before any miner is called so callers with a fragile
+      // connection (the Firefox extension's background page can be
+      // evicted mid-stream) have a stable /scan/{id} link to fall back on
+      // even if they never see the "done" event — the scan finishes and
+      // finalizes under this same id regardless of who's still listening.
+      let scanId: string | undefined;
       try {
+        scanId = await createPendingScan(text.trim());
         const scan = await runScan(
           text.trim(),
           {
-            onStart: (totalTasks) => send({ type: "start", totalTasks }),
+            onStart: (totalTasks) => send({ type: "start", totalTasks, scanId }),
             onMoreTasks: (additionalTasks) => send({ type: "more_tasks", additionalTasks }),
             onCall: (call) => send({ type: "call", call }),
           },
           { maxSpendUsd }
         );
-        const id = await saveScan(scan);
-        send({ type: "done", scan: { ...scan, id } });
+        await finalizeScan(scanId, scan);
+        send({ type: "done", scan: { ...scan, id: scanId } });
       } catch (err) {
         console.error("scan failed", err);
+        if (scanId) await deletePendingScan(scanId).catch(() => {});
         send({ type: "error", error: err instanceof Error ? err.message : "Scan failed." });
       } finally {
         closed = true;
