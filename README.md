@@ -192,11 +192,11 @@ just your own phone's history.
 
 **Every scanned text, one honest verdict each**
 
-![Home screen with scanned SMS history](<./docs/screenshots/scan results.png>)
+![Home screen with scanned SMS history](./docs/screenshots/sms-scan-results.png)
 
 **Flagged the moment it arrives**
 
-![Notification for a suspicious text](<./docs/screenshots/Notification update about scan.png>)
+![Notification for a suspicious text](./docs/screenshots/sms-notification.png)
 
 **Every miner's answer, not just the headline verdict**
 
