@@ -100,7 +100,7 @@ function renderResultToast(scan, detailsUrl) {
   setTimeout(removeToast, 25000);
 }
 
-function renderErrorToast(message) {
+function renderErrorToast(message, detailsUrl) {
   const toast = getToast();
   toast.dataset.variant = "inconclusive";
   toast.innerHTML = `
@@ -109,6 +109,7 @@ function renderErrorToast(message) {
       <button class="ss-toast-close" type="button" aria-label="Close">✕</button>
     </div>
     <p class="ss-toast-body">${message}</p>
+    ${detailsUrl ? `<a class="ss-toast-link" href="${detailsUrl}" target="_blank" rel="noreferrer">Check status on the web app →</a>` : ""}
   `;
   toast.querySelector(".ss-toast-close").addEventListener("click", removeToast);
 }
@@ -156,6 +157,7 @@ function buildModal() {
 
       <div id="ss-modal-error" class="ss-modal-body" hidden>
         <p id="ss-error-text" class="ss-toast-body"></p>
+        <a id="ss-error-link" class="ss-start-button ss-details-link" target="_blank" rel="noreferrer" hidden>Check status on the web app →</a>
       </div>
     </div>
   `;
@@ -226,6 +228,11 @@ function beginScanFromModal(modal) {
   // keep generating that traffic — the background's existing message
   // handler already no-ops anything that isn't SCAN_EMAIL.
   let settled = false;
+  // Every scan gets its /scan/{id} report the moment it starts, well
+  // before "done" — captured here so that if this port dies before the
+  // scan finishes, there's still somewhere useful to send the user
+  // instead of just an apology.
+  let detailsUrl = null;
   let port;
   try {
     port = browser.runtime.connect({ name: "scan" });
@@ -246,6 +253,7 @@ function beginScanFromModal(modal) {
   const stopKeepAlive = () => clearInterval(keepAliveTimer);
 
   port.onMessage.addListener((message) => {
+    if (message.detailsUrl) detailsUrl = message.detailsUrl;
     if (message.type === "SCAN_RESULT" || message.type === "SCAN_ERROR") {
       settled = true;
       stopKeepAlive();
@@ -258,22 +266,34 @@ function beginScanFromModal(modal) {
     if (settled) return;
     scanning = false;
     if (button) setButtonState(button, "idle");
-    showModalError("Lost connection to the extension while checking — please try again.");
+    showModalError(
+      detailsUrl
+        ? "Lost connection to the extension, but the check is still running on the server — it'll finish on its own."
+        : "Lost connection to the extension while checking — please try again.",
+      detailsUrl
+    );
   });
 
   port.postMessage({ type: "SCAN_EMAIL", text, maxSpendUsd: preset.maxSpendUsd });
 }
 
-function showModalError(message) {
+function showModalError(message, detailsUrl) {
   const modal = document.getElementById("ss-modal-backdrop");
   if (!modal) {
-    renderErrorToast(message);
+    renderErrorToast(message, detailsUrl);
     return;
   }
   modal.querySelector("#ss-modal-progress").hidden = true;
   modal.querySelector("#ss-modal-selector").hidden = true;
   modal.querySelector("#ss-modal-error").hidden = false;
   modal.querySelector("#ss-error-text").textContent = message;
+  const link = modal.querySelector("#ss-error-link");
+  if (detailsUrl) {
+    link.href = detailsUrl;
+    link.hidden = false;
+  } else {
+    link.hidden = true;
+  }
 }
 
 function handleScanMessage(message) {

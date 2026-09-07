@@ -54,6 +54,11 @@ If you change either origin, add it to `host_permissions` in
   to the full `/scan/[id]` report.
 - If you close the modal while a scan is still running, the result still
   arrives as a bottom-right toast instead, so you don't lose it.
+- Every scan gets its `/scan/{id}` report the moment it starts — well
+  before it finishes — so if the port to the background script is ever
+  lost mid-scan despite the keepalive ping, the modal shows a link to that
+  report instead of just an error: the scan keeps running and finalizing
+  server-side regardless of whether the extension is still listening.
 
 ## Known limitation
 

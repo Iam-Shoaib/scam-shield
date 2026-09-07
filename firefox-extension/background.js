@@ -66,7 +66,12 @@ async function runScan(text, maxSpendUsd, port) {
 
       if (msg.type === "start") {
         totalTasks = msg.totalTasks;
-        port.postMessage({ type: "SCAN_PROGRESS", resolved, total: totalTasks });
+        // The scan's id (and so its /scan/{id} report) exists from this
+        // first event on, well before "done" — worth relaying now so the
+        // content script has somewhere to send the user if this port
+        // itself doesn't survive to see the scan finish.
+        const detailsUrl = msg.scanId ? `${WEB_APP_ORIGIN}/scan/${msg.scanId}` : undefined;
+        port.postMessage({ type: "SCAN_PROGRESS", resolved, total: totalTasks, detailsUrl });
       } else if (msg.type === "more_tasks") {
         totalTasks += msg.additionalTasks;
         port.postMessage({ type: "SCAN_PROGRESS", resolved, total: totalTasks });
