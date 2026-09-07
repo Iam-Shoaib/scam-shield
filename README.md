@@ -198,6 +198,10 @@ just your own phone's history.
 
 ![Notification for a suspicious text](<./docs/screenshots/Notification update about scan.png>)
 
+**Every miner's answer, not just the headline verdict**
+
+![Scan detail screen with miner-by-miner evidence](<./docs/screenshots/ledger page.jpeg>)
+
 ### Installing the APK
 
 A signed release build is checked into the repo at
