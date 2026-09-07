@@ -214,11 +214,38 @@ function beginScanFromModal(modal) {
   const preset = PRIORITIES.find((p) => p.key === selectedPriority) ?? PRIORITIES[1];
   const text = extractEmailText();
 
-  browser.runtime.sendMessage({ type: "SCAN_EMAIL", text, maxSpendUsd: preset.maxSpendUsd }).catch((err) => {
+  // A long-lived port, not a one-off sendMessage: Firefox evicts this
+  // extension's non-persistent background page after ~30s idle, and a
+  // scan (strictly-sequential payments, up to a 30s timeout per miner)
+  // routinely runs past that. Keeping the port open for the scan's whole
+  // lifetime is what keeps the background page — and the stream it's
+  // relaying from — alive long enough to finish.
+  let settled = false;
+  let port;
+  try {
+    port = browser.runtime.connect({ name: "scan" });
+  } catch {
     scanning = false;
     if (button) setButtonState(button, "idle");
-    showModalError(err instanceof Error ? err.message : "Couldn't reach the extension background script.");
+    showModalError("Couldn't reach the extension background script.");
+    return;
+  }
+
+  port.onMessage.addListener((message) => {
+    if (message.type === "SCAN_RESULT" || message.type === "SCAN_ERROR") {
+      settled = true;
+    }
+    handleScanMessage(message);
   });
+
+  port.onDisconnect.addListener(() => {
+    if (settled) return;
+    scanning = false;
+    if (button) setButtonState(button, "idle");
+    showModalError("Lost connection to the extension while checking — please try again.");
+  });
+
+  port.postMessage({ type: "SCAN_EMAIL", text, maxSpendUsd: preset.maxSpendUsd });
 }
 
 function showModalError(message) {
@@ -233,7 +260,7 @@ function showModalError(message) {
   modal.querySelector("#ss-error-text").textContent = message;
 }
 
-browser.runtime.onMessage.addListener((message) => {
+function handleScanMessage(message) {
   const modal = document.getElementById("ss-modal-backdrop");
 
   if (message.type === "SCAN_PROGRESS") {
@@ -287,7 +314,7 @@ browser.runtime.onMessage.addListener((message) => {
     if (button) setButtonState(button, "idle");
     showModalError(message.error);
   }
-});
+}
 
 // ---------------------------------------------------------------------------
 // Button injection

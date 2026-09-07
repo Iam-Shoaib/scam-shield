@@ -2,28 +2,36 @@
 // Content scripts run inside Gmail's page and never fetch directly —
 // this keeps the request privileged (bypasses Gmail's page CSP and CORS
 // entirely, since host_permissions makes this an extension-trusted fetch).
+//
+// Scans are driven over a long-lived runtime.Port rather than one-off
+// runtime.sendMessage/tabs.sendMessage calls. Firefox treats this MV3
+// background script as a non-persistent event page and evicts it after
+// ~30s of what it considers idle time — a raw fetch() awaiting stream
+// chunks doesn't reset that timer. Since payments are sent strictly
+// sequentially and a slow miner can eat its full 30s timeout, a scan
+// easily runs past that window; without a port, the background page gets
+// killed mid-stream, the scan still finishes and saves server-side, but
+// the extension never hears about it. Holding the port open for the
+// scan's duration keeps the background page alive to relay every event.
+browser.runtime.onConnect.addListener((port) => {
+  if (port.name !== "scan") return;
 
-browser.runtime.onMessage.addListener((message, sender) => {
-  if (message?.type !== "SCAN_EMAIL") return;
-  const tabId = sender.tab?.id;
-  if (typeof tabId !== "number") return;
-
-  runScan(message.text, message.maxSpendUsd, tabId).catch((err) => {
-    browser.tabs
-      .sendMessage(tabId, {
-        type: "SCAN_ERROR",
-        error: err instanceof Error ? err.message : "Something went wrong.",
-      })
-      .catch(() => {});
+  port.onMessage.addListener((message) => {
+    if (message?.type !== "SCAN_EMAIL") return;
+    runScan(message.text, message.maxSpendUsd, port).catch((err) => {
+      try {
+        port.postMessage({
+          type: "SCAN_ERROR",
+          error: err instanceof Error ? err.message : "Something went wrong.",
+        });
+      } catch {
+        // Port already disconnected (e.g. the Gmail tab was closed) — nothing to relay to.
+      }
+    });
   });
-
-  // Fire-and-forget from the content script's perspective — progress and
-  // the final result arrive as separate tabs.sendMessage calls below,
-  // since a scan can take well over a minute.
-  return Promise.resolve({ started: true });
 });
 
-async function runScan(text, maxSpendUsd, tabId) {
+async function runScan(text, maxSpendUsd, port) {
   const res = await fetch(`${API_ORIGIN}/api/scan`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -57,20 +65,20 @@ async function runScan(text, maxSpendUsd, tabId) {
 
       if (msg.type === "start") {
         totalTasks = msg.totalTasks;
-        await browser.tabs.sendMessage(tabId, { type: "SCAN_PROGRESS", resolved, total: totalTasks });
+        port.postMessage({ type: "SCAN_PROGRESS", resolved, total: totalTasks });
       } else if (msg.type === "more_tasks") {
         totalTasks += msg.additionalTasks;
-        await browser.tabs.sendMessage(tabId, { type: "SCAN_PROGRESS", resolved, total: totalTasks });
+        port.postMessage({ type: "SCAN_PROGRESS", resolved, total: totalTasks });
       } else if (msg.type === "call") {
         resolved += 1;
-        await browser.tabs.sendMessage(tabId, {
+        port.postMessage({
           type: "SCAN_CALL",
           call: msg.call,
           resolved,
           total: totalTasks,
         });
       } else if (msg.type === "done") {
-        await browser.tabs.sendMessage(tabId, {
+        port.postMessage({
           type: "SCAN_RESULT",
           scan: msg.scan,
           detailsUrl: `${WEB_APP_ORIGIN}/scan/${msg.scan.id}`,

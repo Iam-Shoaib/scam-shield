@@ -35,12 +35,17 @@ If you change either origin, add it to `host_permissions` in
 - Clicking the button opens a modal. Picking a priority (Base/Medium/Heavy)
   maps to the same spend-ceiling presets as the web app (~$0.15/$0.50/$2.00)
   and is sent as `maxSpendUsd`.
-- **Start check** sends `{type: "SCAN_EMAIL", text, maxSpendUsd}` to
-  `background.js` via `browser.runtime.sendMessage`.
+- **Start check** opens a long-lived `browser.runtime.connect` port to
+  `background.js` and sends `{type: "SCAN_EMAIL", text, maxSpendUsd}` over
+  it. A port, not a one-off `sendMessage`, on purpose: Firefox evicts this
+  extension's background page after ~30s of what it considers idle time,
+  and a scan (payments run strictly sequentially, and a slow miner can eat
+  its full 30s timeout) routinely runs past that — holding the port open
+  is what keeps the background page alive long enough to finish and relay
+  every event.
 - `background.js` is the only thing that talks to the network — it POSTs
   to `/api/scan`, reads the same streamed NDJSON progress the web app
-  uses, and relays each miner's result back to the tab via
-  `browser.tabs.sendMessage` as it resolves.
+  uses, and relays each miner's result back over the port as it resolves.
 - The modal renders each incoming result as a compact log row (miner name,
   colored verdict badge, reason) in real time, then shows the final verdict
   — a large colored word matching the web app's own treatment — with a link
