@@ -217,9 +217,14 @@ function beginScanFromModal(modal) {
   // A long-lived port, not a one-off sendMessage: Firefox evicts this
   // extension's non-persistent background page after ~30s idle, and a
   // scan (strictly-sequential payments, up to a 30s timeout per miner)
-  // routinely runs past that. Keeping the port open for the scan's whole
-  // lifetime is what keeps the background page — and the stream it's
-  // relaying from — alive long enough to finish.
+  // routinely runs past that. But merely holding a port open isn't
+  // enough on its own — Firefox only resets the idle timer when the
+  // background page actually *receives* something through it (confirmed
+  // by a Mozilla engineer; the docs claiming an open port alone prevents
+  // eviction are wrong). So this pings the background on an interval well
+  // under the ~30s window for as long as the scan is running, purely to
+  // keep generating that traffic — the background's existing message
+  // handler already no-ops anything that isn't SCAN_EMAIL.
   let settled = false;
   let port;
   try {
@@ -231,14 +236,25 @@ function beginScanFromModal(modal) {
     return;
   }
 
+  const keepAliveTimer = setInterval(() => {
+    try {
+      port.postMessage({ type: "SCAN_PING" });
+    } catch {
+      clearInterval(keepAliveTimer);
+    }
+  }, 8000);
+  const stopKeepAlive = () => clearInterval(keepAliveTimer);
+
   port.onMessage.addListener((message) => {
     if (message.type === "SCAN_RESULT" || message.type === "SCAN_ERROR") {
       settled = true;
+      stopKeepAlive();
     }
     handleScanMessage(message);
   });
 
   port.onDisconnect.addListener(() => {
+    stopKeepAlive();
     if (settled) return;
     scanning = false;
     if (button) setButtonState(button, "idle");

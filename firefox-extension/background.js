@@ -7,12 +7,13 @@
 // runtime.sendMessage/tabs.sendMessage calls. Firefox treats this MV3
 // background script as a non-persistent event page and evicts it after
 // ~30s of what it considers idle time — a raw fetch() awaiting stream
-// chunks doesn't reset that timer. Since payments are sent strictly
-// sequentially and a slow miner can eat its full 30s timeout, a scan
-// easily runs past that window; without a port, the background page gets
-// killed mid-stream, the scan still finishes and saves server-side, but
-// the extension never hears about it. Holding the port open for the
-// scan's duration keeps the background page alive to relay every event.
+// chunks doesn't reset that timer, and merely holding a port open doesn't
+// either. Since payments are sent strictly sequentially and a slow miner
+// can eat its full 30s timeout, a scan easily runs past that window.
+// content/gmail.js pings this port every 8s for the scan's duration
+// purely to generate the incoming traffic Firefox actually resets the
+// idle timer on; SCAN_PING (and anything else that isn't SCAN_EMAIL) is
+// intentionally a no-op below.
 browser.runtime.onConnect.addListener((port) => {
   if (port.name !== "scan") return;
 

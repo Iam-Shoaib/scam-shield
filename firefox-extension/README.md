@@ -40,9 +40,11 @@ If you change either origin, add it to `host_permissions` in
   it. A port, not a one-off `sendMessage`, on purpose: Firefox evicts this
   extension's background page after ~30s of what it considers idle time,
   and a scan (payments run strictly sequentially, and a slow miner can eat
-  its full 30s timeout) routinely runs past that — holding the port open
-  is what keeps the background page alive long enough to finish and relay
-  every event.
+  its full 30s timeout) routinely runs past that. Holding the port open
+  isn't enough by itself, though — Firefox only resets the idle timer when
+  the background page actually receives something through it — so the
+  content script also pings the port every 8s for as long as the scan is
+  running, purely to generate that traffic.
 - `background.js` is the only thing that talks to the network — it POSTs
   to `/api/scan`, reads the same streamed NDJSON progress the web app
   uses, and relays each miner's result back over the port as it resolves.
