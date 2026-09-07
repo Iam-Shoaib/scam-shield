@@ -134,8 +134,44 @@ firefox-extension/   Gmail extension — see its own README
 
 ## Firefox extension
 
-`firefox-extension/` adds a "Check with Scam Shield" button directly inside
-Gmail — open an email, click it, and get the same live verdict in a toast,
-with a link to the full report. See
-[`firefox-extension/README.md`](./firefox-extension/README.md) for how to
-load it and how it talks to the API.
+`firefox-extension/` brings the same check straight into Gmail: open an
+email, click **Check with Scam Shield**, pick how thorough the check
+should be, and watch the same live, miner-by-miner verdict — without ever
+leaving your inbox.
+
+**One click, right where the email is**
+
+![Check with Scam Shield button in Gmail](./docs/screenshots/extensions-button.png)
+
+**Pick how thorough the check should be**
+
+![Priority selector in the check modal](./docs/screenshots/extension-initial-modal.png)
+
+**Watch each miner answer live**
+
+![Live miner progress in the modal](./docs/screenshots/extension-during-scan.png)
+
+**The same verdict, without leaving the inbox**
+
+![Final verdict in the modal](./docs/screenshots/extension-scan-result.png)
+
+### Running it locally
+
+1. Open `about:debugging#/runtime/this-firefox` in Firefox.
+2. Click **Load Temporary Add-on…** and select
+   [`firefox-extension/manifest.json`](./firefox-extension/manifest.json).
+3. Open [mail.google.com](https://mail.google.com) and open any email — the
+   button appears just below the subject line.
+4. By default it talks to the deployed app
+   (`https://scam-shield-rouge.vercel.app`). To point it at a local
+   `npm run dev` server instead, edit `API_ORIGIN` / `WEB_APP_ORIGIN` in
+   [`firefox-extension/config.js`](./firefox-extension/config.js) to
+   `http://localhost:3000` (both lines are already there, just commented
+   out).
+
+Temporary add-ons are removed when Firefox closes, so reload it from
+`about:debugging` each session while testing. Full architecture notes —
+why the modal talks to the background script over a long-lived port
+instead of one-off messages, and how it falls back if that connection
+drops mid-scan — live in
+[`firefox-extension/README.md`](./firefox-extension/README.md).
