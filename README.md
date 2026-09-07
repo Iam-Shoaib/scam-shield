@@ -4,7 +4,7 @@
 
 Paste a suspicious message, email, or link. Scam Shield pays 20+ independent
 AI "miners" on the [Telegraph Protocol](https://telegraphprotocol.com)
-network — real x402 micropayments, real answers — to check it, then hands
+network - real x402 micropayments, real answers - to check it, then hands
 back one plain-language verdict: **Safe**, **Suspicious**, or **Scam**. Every
 finding, cost, and cryptographic signal hash is shown in full, not hidden
 behind a black-box score.
@@ -15,7 +15,7 @@ behind a black-box score.
 [![x402](https://img.shields.io/badge/payments-x402-lightgrey)](https://github.com/x402-foundation/x402)
 
 Scam Shield is three products sharing one verdict engine: a **web app**,
-a **Gmail extension**, and a **mobile app** (in progress) — wherever a
+a **Gmail extension**, and a **mobile app** (in progress) - wherever a
 scam reaches you, the same live, paid Telegraph miner network checks it
 and hands back the same honest verdict.
 
@@ -24,10 +24,10 @@ and hands back the same honest verdict.
 ## Why it holds up
 
 - **No single point of failure.** Six independent services check link safety
-  alone. When one is slow, wrong, or offline, the scan doesn't wait for it —
+  alone. When one is slow, wrong, or offline, the scan doesn't wait for it -
   the others still reach a verdict.
 - **Nothing is hidden.** Every finding, cost, and signal hash is public and
-  independently verifiable on the Telegraph explorer — not a percentage you
+  independently verifiable on the Telegraph explorer - not a percentage you
   have to trust.
 - **Paid, not guessed.** Every answer comes from a service with real money
   riding on being right, settled live via x402 on Base Sepolia.
@@ -46,21 +46,21 @@ and hands back the same honest verdict.
 
 ![Public ledger](./docs/screenshots/ledger.jpg)
 
-**Free during early access — token-based plan coming**
+**Free during early access - token-based plan coming**
 
 ![Pricing page](./docs/screenshots/pricing.jpg)
 
 ## How it works
 
 1. Paste a message, email, or link.
-2. The text is scanned locally for URLs, emails, and IP addresses — free,
+2. The text is scanned locally for URLs, emails, and IP addresses - free,
    no miner calls yet.
 3. Non-English text is translated first, so every downstream check runs on
    English.
 4. The raw text always goes through message-fraud, AI-text, and
    prompt-injection miners.
 5. Every URL found is checked for link safety and certificate trust, and its
-   page content is extracted and re-analyzed too — catching scam landing
+   page content is extracted and re-analyzed too - catching scam landing
    pages even when the message itself looks clean.
 6. Every email and IP found gets its own reputation and geolocation checks.
 7. Results are rolled into one verdict, streamed to the page live as each
@@ -71,8 +71,8 @@ Full technical breakdown: [`app/about`](./app/about/page.tsx).
 ## Stack
 
 - **Next.js 16** (App Router, Turbopack) + TypeScript + Tailwind CSS v4
-- **MongoDB** — persists every scan for the public ledger and stats
-- **`@x402/*`** — pays Telegraph miners live via x402 on Base Sepolia
+- **MongoDB** - persists every scan for the public ledger and stats
+- **`@x402/*`** - pays Telegraph miners live via x402 on Base Sepolia
 
 ## Setup
 
@@ -91,7 +91,7 @@ Full technical breakdown: [`app/about`](./app/about/page.tsx).
    | Variable | What it's for |
    |---|---|
    | `EVM_PRIVATE_KEY` | Wallet that pays miners via x402. Must hold USDC on Base Sepolia (`0x036CbD53842c5426634e7929541eC2318f3dCF7e`). Server-only, never sent to the client. |
-   | `TELEGRAPH_NODE_URL` | Telegraph node base URL — defaults to the public devnode. |
+   | `TELEGRAPH_NODE_URL` | Telegraph node base URL - defaults to the public devnode. |
    | `MONGODB_URI` | A local MongoDB instance works fine for development; use Atlas in production. |
    | `SCAN_SPEND_CEILING_USD` | Safety-net ceiling on spend per scan (default `5.00`). The message-level checks always run regardless of this; it only bounds how many URLs/emails/IPs get the full entity-driven fan-out. |
 
@@ -105,9 +105,9 @@ Full technical breakdown: [`app/about`](./app/about/page.tsx).
 
 ## Requirements
 
-- **Node.js 20+** — the `@x402/*` packages sign payments with the WebCrypto
+- **Node.js 20+** - the `@x402/*` packages sign payments with the WebCrypto
   API, which Node 18 doesn't expose.
-- A funded wallet (see above) — without USDC on the configured wallet, scans
+- A funded wallet (see above) - without USDC on the configured wallet, scans
   will run but every miner call will fail at the payment step.
 
 ## Scripts
@@ -134,14 +134,14 @@ components/          shared UI (VerdictCard, EvidenceTable, Badge, ...)
 lib/telegraph/       miner registry + x402 payment client
 lib/scam/            entity extraction, language detection, scan orchestrator
 docs/screenshots/    README screenshots
-firefox-extension/   Gmail extension — see its own README
+firefox-extension/   Gmail extension - see its own README
 ```
 
 ## Firefox extension
 
 `firefox-extension/` brings the same check straight into Gmail: open an
 email, click **Check with Scam Shield**, pick how thorough the check
-should be, and watch the same live, miner-by-miner verdict — without ever
+should be, and watch the same live, miner-by-miner verdict - without ever
 leaving your inbox.
 
 **One click, right where the email is**
@@ -165,7 +165,7 @@ leaving your inbox.
 1. Open `about:debugging#/runtime/this-firefox` in Firefox.
 2. Click **Load Temporary Add-on…** and select
    [`firefox-extension/manifest.json`](./firefox-extension/manifest.json).
-3. Open [mail.google.com](https://mail.google.com) and open any email — the
+3. Open [mail.google.com](https://mail.google.com) and open any email - the
    button appears just below the subject line.
 4. By default it talks to the deployed app
    (`https://scam-shield-rouge.vercel.app`). To point it at a local
@@ -175,10 +175,10 @@ leaving your inbox.
    out).
 
 Temporary add-ons are removed when Firefox closes, so reload it from
-`about:debugging` each session while testing. Full architecture notes —
+`about:debugging` each session while testing. Full architecture notes -
 why the modal talks to the background script over a long-lived port
 instead of one-off messages, and how it falls back if that connection
-drops mid-scan — live in
+drops mid-scan - live in
 [`firefox-extension/README.md`](./firefox-extension/README.md).
 
 ## Upcoming features
@@ -189,6 +189,6 @@ drops mid-scan — live in
 - **A mobile app.** Bringing the same verdict engine to SMS and messages
   on the go, not just inboxes.
 - **One subscription, every platform.** A single plan that unlocks
-  unlimited checks across the web app, the extension, and mobile — the
+  unlimited checks across the web app, the extension, and mobile - the
   [pricing page](https://scam-shield-rouge.vercel.app/pricing) previews
   the tiers today.
