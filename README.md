@@ -15,9 +15,9 @@ behind a black-box score.
 [![x402](https://img.shields.io/badge/payments-x402-lightgrey)](https://github.com/x402-foundation/x402)
 
 Scam Shield is three products sharing one verdict engine: a **web app**,
-a **Gmail extension**, and a **mobile app** (in progress) - wherever a
-scam reaches you, the same live, paid Telegraph miner network checks it
-and hands back the same honest verdict.
+a **Gmail extension**, and an **Android app** - wherever a scam reaches
+you, the same live, paid Telegraph miner network checks it and hands
+back the same honest verdict.
 
 ---
 
@@ -135,6 +135,7 @@ lib/telegraph/       miner registry + x402 payment client
 lib/scam/            entity extraction, language detection, scan orchestrator
 docs/screenshots/    README screenshots
 firefox-extension/   Gmail extension - see its own README
+mobile-app/           Android app (Kotlin, Jetpack Compose) - see below
 ```
 
 ## Firefox extension
@@ -181,13 +182,54 @@ instead of one-off messages, and how it falls back if that connection
 drops mid-scan - live in
 [`firefox-extension/README.md`](./firefox-extension/README.md).
 
+## Android app
+
+`mobile-app/` brings the same verdict engine to SMS: turn on protection
+once, and every incoming text is checked automatically through the same
+live, paid Telegraph miner network - no need to open the app. Every
+scan, from every device, is also visible in a global ledger tab, not
+just your own phone's history.
+
+**Every scanned text, one honest verdict each**
+
+![Home screen with scanned SMS history](<./docs/screenshots/scan results.png>)
+
+**Flagged the moment it arrives**
+
+![Notification for a suspicious text](<./docs/screenshots/Notification update about scan.png>)
+
+### Installing the APK
+
+A signed release build is checked into the repo at
+[`mobile-app/releases/scam-shield-v0.1.0.apk`](./mobile-app/releases/scam-shield-v0.1.0.apk)
+and talks to the deployed app by default - no build step needed.
+
+1. Get the APK onto your Android device (download it directly on-device
+   from GitHub, or transfer it via USB/`adb push`/a messaging app).
+2. Open it from Files/Downloads. Android will prompt to allow installs
+   from that source the first time - allow it, then continue the install.
+3. Open **Scam Shield**, go to **Settings**, and turn on **Protection**.
+   Grant the SMS permission when prompted (and notifications, on Android
+   13+) - incoming texts start getting checked automatically from then on.
+
+Prefer the command line: `adb install mobile-app/releases/scam-shield-v0.1.0.apk`
+with the device connected over USB (developer options + USB debugging
+enabled).
+
+### Building from source
+
+Open `mobile-app/` in Android Studio, let it sync Gradle, and run the
+`app` configuration on a device or emulator. It's a native Kotlin/Jetpack
+Compose project - no Node tooling involved. SMS scanning is Android-only -
+reading incoming SMS content isn't a capability iOS grants to any app.
+
 ## Upcoming features
 
 - **More inboxes.** The extension currently checks Gmail; Outlook, Zoho,
   and other webmail providers are next, so the same one-click check works
   wherever you actually read your email.
-- **A mobile app.** Bringing the same verdict engine to SMS and messages
-  on the go, not just inboxes.
+- **iOS support.** SMS auto-scanning is Android-only for now (iOS doesn't
+  allow it); a paste-to-check iOS app is the likely next step.
 - **One subscription, every platform.** A single plan that unlocks
   unlimited checks across the web app, the extension, and mobile - the
   [pricing page](https://scam-shield-rouge.vercel.app/pricing) previews
