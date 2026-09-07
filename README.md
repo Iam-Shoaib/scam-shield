@@ -14,10 +14,16 @@ behind a black-box score.
 [![Telegraph Protocol](https://img.shields.io/badge/Telegraph-Protocol-1F7A50)](https://telegraphprotocol.com)
 [![x402](https://img.shields.io/badge/payments-x402-lightgrey)](https://github.com/x402-foundation/x402)
 
-Scam Shield is three products sharing one verdict engine: a **web app**,
-a **Gmail extension**, and an **Android app** - wherever a scam reaches
-you, the same live, paid Telegraph miner network checks it and hands
-back the same honest verdict.
+Scam Shield is three products sharing one verdict engine - wherever a
+scam reaches you, the same live, paid Telegraph miner network checks it
+and hands back the same honest verdict:
+
+- **Web app** - paste a message, email, or link at
+  [`scam-shield-rouge.vercel.app/check`](https://scam-shield-rouge.vercel.app/check)
+- **Gmail extension** - check any email with one click, without leaving
+  your inbox ([jump to section](#firefox-extension))
+- **Android app** - turn on protection once, every incoming text gets
+  checked automatically ([jump to section](#android-app))
 
 ---
 
