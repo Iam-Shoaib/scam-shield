@@ -326,6 +326,48 @@ function labelFromWord(word: string | undefined): NormalizedVerdict["label"] {
   return "unknown";
 }
 
+const NEGATION_WORDS = [
+  "not",
+  "no ",
+  "n't",
+  "cannot",
+  "can't",
+  "without",
+  "lacks",
+  "lacking",
+  "none of",
+  "neither",
+];
+
+/**
+ * Some miners (SarzOps) return a free-text explanation rather than a short
+ * classification word, and reuse it as both the label signal and the
+ * human-readable reason. Naive substring keyword matching (labelFromWord)
+ * misreads negated prose — "does not match any known scam template" gets
+ * flagged malicious purely because it contains "scam". This checks each
+ * sentence for a severity keyword *and* requires that sentence to be free
+ * of a negation cue before counting the hit, so an explanation of why
+ * something ISN'T a match doesn't get read as a positive match.
+ */
+function labelFromProse(text: string): NormalizedVerdict["label"] {
+  const sentences = text.toLowerCase().split(/(?<=[.!?])\s+/);
+  const tiers: [string[], NormalizedVerdict["label"]][] = [
+    [["scam", "fraud", "malicious", "phishing", "block", "high risk", "critical"], "malicious"],
+    [["suspicious", "caution", "recheck", "review", "medium risk", "warn"], "suspicious"],
+    [["safe", "clean", "benign", "low risk", "allow", "legitimate"], "clean"],
+  ];
+  for (const [keywords, label] of tiers) {
+    const hasUnnegatedHit = sentences.some((sentence) => {
+      const matchesKeyword = keywords.some((k) => sentence.includes(k));
+      if (!matchesKeyword) return false;
+      const isNegated = NEGATION_WORDS.some((n) => sentence.includes(n));
+      return !isNegated;
+    });
+    if (hasUnnegatedHit) return label;
+  }
+  return "unknown";
+}
+
 const sigvora: MinerDefinition = {
   id: "251",
   name: "Sigvora",
@@ -368,7 +410,10 @@ const sarzOps: MinerDefinition = {
   parseVerdict: (result) => {
     const r = rec(result);
     const signal = String(r.signal ?? "");
-    return { label: labelFromWord(signal), reason: signal || "SarzOps returned no signal." };
+    // SarzOps's "signal" field is free-text prose, not a short classification
+    // word — labelFromWord's substring matching misreads negated explanations
+    // ("does not match any known scam template") as a malicious hit.
+    return { label: labelFromProse(signal), reason: signal || "SarzOps returned no signal." };
   },
 };
 

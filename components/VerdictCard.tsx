@@ -1,6 +1,7 @@
 import type { ScanResult } from "@/lib/telegraph/scanTypes";
 import { deriveDisplayVerdict, VerdictDisplay, type DisplayVerdict } from "./Badge";
 import { ShareToXButton } from "./ShareToXButton";
+import { RetryScanButton } from "./RetryScanButton";
 
 const HEADLINE: Record<DisplayVerdict, string> = {
   safe: "Nothing here looks wrong.",
@@ -33,8 +34,9 @@ function InfrastructureNotice({ scan, variant }: { scan: ScanResult; variant: Di
   return (
     <div className="mt-6 rounded-lg border border-unknown-border/40 bg-unknown-fill px-4 py-3 text-[13px] text-unknown-text">
       {looksLikeFunding
-        ? "None of these checks could be paid for — the wallet funding this app may be out of USDC right now. This isn't a verdict — try again shortly."
-        : "No miner could be reached for this scan. This isn't a verdict — see the errors in the evidence below and try again."}
+        ? "Most of these checks couldn't be paid for — the wallet funding this app may be out of USDC right now. This isn't a verdict."
+        : "Most miners for this scan failed or errored out. This isn't a verdict — see the errors in the evidence below."}
+      <RetryScanButton text={scan.inputText} />
     </div>
   );
 }

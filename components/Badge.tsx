@@ -5,15 +5,23 @@ export type DisplayVerdict = "safe" | "suspicious" | "scam" | "inconclusive";
 
 /**
  * Maps a scan's stored verdict to what should actually be shown. A scan
- * where every miner call failed carries no real signal — showing "Safe" for
- * that is a false negative, the worst failure mode for a tool like this — so
- * it gets its own neutral "inconclusive" treatment instead of borrowing green.
+ * where most miner calls failed carries too little real signal to trust —
+ * showing "Safe" off a minority of answered calls is a false negative, the
+ * worst failure mode for a tool like this — so it gets its own neutral
+ * "inconclusive" treatment instead of borrowing green.
  */
 export function deriveDisplayVerdict(scan: ScanResult): DisplayVerdict {
-  if (scan.calls.length > 0 && scan.calls.every((c) => !c.ok)) return "inconclusive";
+  if (isMajorityFailed(scan)) return "inconclusive";
   if (scan.overallVerdict === "SAFE") return "safe";
   if (scan.overallVerdict === "SUSPICIOUS") return "suspicious";
   return "scam";
+}
+
+/** True when more than half of this scan's miner calls came back failed/errored. */
+export function isMajorityFailed(scan: ScanResult): boolean {
+  if (scan.calls.length === 0) return false;
+  const failed = scan.calls.filter((c) => !c.ok).length;
+  return failed / scan.calls.length > 0.5;
 }
 
 const VERDICT_WORD: Record<DisplayVerdict, string> = {
