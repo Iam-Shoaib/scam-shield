@@ -14,6 +14,11 @@ behind a black-box score.
 [![Telegraph Protocol](https://img.shields.io/badge/Telegraph-Protocol-1F7A50)](https://telegraphprotocol.com)
 [![x402](https://img.shields.io/badge/payments-x402-lightgrey)](https://github.com/x402-foundation/x402)
 
+Scam Shield is three products sharing one verdict engine: a **web app**,
+a **Gmail extension**, and a **mobile app** (in progress) — wherever a
+scam reaches you, the same live, paid Telegraph miner network checks it
+and hands back the same honest verdict.
+
 ---
 
 ## Why it holds up
@@ -175,3 +180,15 @@ why the modal talks to the background script over a long-lived port
 instead of one-off messages, and how it falls back if that connection
 drops mid-scan — live in
 [`firefox-extension/README.md`](./firefox-extension/README.md).
+
+## Upcoming features
+
+- **More inboxes.** The extension currently checks Gmail; Outlook, Zoho,
+  and other webmail providers are next, so the same one-click check works
+  wherever you actually read your email.
+- **A mobile app.** Bringing the same verdict engine to SMS and messages
+  on the go, not just inboxes.
+- **One subscription, every platform.** A single plan that unlocks
+  unlimited checks across the web app, the extension, and mobile — the
+  [pricing page](https://scam-shield-rouge.vercel.app/pricing) previews
+  the tiers today.
