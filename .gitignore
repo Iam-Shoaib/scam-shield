@@ -1,0 +1,27 @@
+# dependencies (any package in this monorepo)
+node_modules/
+.pnp
+.pnp.*
+
+# build output
+.next/
+out/
+build/
+dist/
+*.tsbuildinfo
+
+# env files — never commit secrets
+.env
+.env.local
+.env.*.local
+
+# OS / editor cruft
+.DS_Store
+Thumbs.db
+*.log
+
+# vercel
+.vercel
+
+# stray local screenshots dropped into the repo during dev
+Screenshot *.png

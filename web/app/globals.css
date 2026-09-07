@@ -1,0 +1,222 @@
+@import "tailwindcss";
+
+/*
+  Scam Shield design tokens
+  ─────────────────────────
+  Identity: "an examiner's desk, not a dashboard." Neutrals are a cool,
+  mineral slate — deliberately not the tinted-near-black of generic dark
+  tech UI, and not the cream+terracotta of generic warm AI UI. Verdict
+  colour is the only place saturation is spent; the rest of the system
+  stays quiet so that moment carries the page.
+
+  Two typefaces, two jobs:
+  - Newsreader (serif) sets anything that is a VERDICT or a HEADLINE
+    TOTAL — the words and numbers that matter most.
+  - IBM Plex Sans sets everything you interact with, scan, or compare.
+  - IBM Plex Mono is reserved for costs, latencies and signal hashes —
+    the literal machine-readable evidence.
+*/
+
+:root {
+  /* Neutrals — light */
+  --paper: #f4f5f1;
+  --paper-raised: #fcfcfa;
+  --fog: #dee1d8;
+  --border-default: #d3d6cb;
+  --steel: #5b5f52;
+  --graphite: #20231c;
+
+  /* Safe / green */
+  --safe-text: #247b52;
+  --safe-fill: #e6f5ee;
+  --safe-subtle: #f1f9f5;
+  --safe-border: #53c690;
+
+  /* Suspicious / amber */
+  --suspicious-text: #8b631d;
+  --suspicious-fill: #f5efe6;
+  --suspicious-subtle: #f9f6f1;
+  --suspicious-border: #c69c53;
+
+  /* Scam / red */
+  --scam-text: #c22e3a;
+  --scam-fill: #f5e6e7;
+  --scam-subtle: #f9f1f1;
+  --scam-border: #c6535c;
+
+  /* Unknown / neutral */
+  --unknown-text: #5b5f52;
+  --unknown-fill: #dee1d8;
+  --unknown-subtle: #eff1ea;
+  --unknown-border: #9a9e8f;
+
+  --background: var(--paper);
+  --foreground: var(--graphite);
+  --focus-ring: var(--graphite);
+}
+
+:root[data-theme="dark"],
+:root:not([data-theme="light"]) {
+  @media (prefers-color-scheme: dark) {
+    --paper: #121309;
+    --paper-raised: #20231c;
+    --fog: #2b2e26;
+    --border-default: #2b2e26;
+    --steel: #959c91;
+    --graphite: #f4f5f1;
+
+    --safe-text: #44bb83;
+    --safe-fill: #19382a;
+    --safe-subtle: #132a1f;
+    --safe-border: #317254;
+
+    --suspicious-text: #c69239;
+    --suspicious-fill: #382d19;
+    --suspicious-subtle: #2a2213;
+    --suspicious-border: #725a31;
+
+    --scam-text: #d26f77;
+    --scam-fill: #38191c;
+    --scam-subtle: #2a1315;
+    --scam-border: #723136;
+
+    --unknown-text: #959c91;
+    --unknown-fill: #2d312b;
+    --unknown-subtle: #232622;
+    --unknown-border: #555c51;
+
+    --focus-ring: var(--paper);
+  }
+}
+
+:root[data-theme="dark"] {
+  --paper: #121309;
+  --paper-raised: #20231c;
+  --fog: #2b2e26;
+  --border-default: #2b2e26;
+  --steel: #959c91;
+  --graphite: #f4f5f1;
+
+  --safe-text: #44bb83;
+  --safe-fill: #19382a;
+  --safe-subtle: #132a1f;
+  --safe-border: #317254;
+
+  --suspicious-text: #c69239;
+  --suspicious-fill: #382d19;
+  --suspicious-subtle: #2a2213;
+  --suspicious-border: #725a31;
+
+  --scam-text: #d26f77;
+  --scam-fill: #38191c;
+  --scam-subtle: #2a1315;
+  --scam-border: #723136;
+
+  --unknown-text: #959c91;
+  --unknown-fill: #2d312b;
+  --unknown-subtle: #232622;
+  --unknown-border: #555c51;
+
+  --focus-ring: var(--paper);
+}
+
+@theme inline {
+  --color-paper: var(--paper);
+  --color-paper-raised: var(--paper-raised);
+  --color-fog: var(--fog);
+  --color-border-default: var(--border-default);
+  --color-steel: var(--steel);
+  --color-graphite: var(--graphite);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+
+  --color-safe-text: var(--safe-text);
+  --color-safe-fill: var(--safe-fill);
+  --color-safe-subtle: var(--safe-subtle);
+  --color-safe-border: var(--safe-border);
+
+  --color-suspicious-text: var(--suspicious-text);
+  --color-suspicious-fill: var(--suspicious-fill);
+  --color-suspicious-subtle: var(--suspicious-subtle);
+  --color-suspicious-border: var(--suspicious-border);
+
+  --color-scam-text: var(--scam-text);
+  --color-scam-fill: var(--scam-fill);
+  --color-scam-subtle: var(--scam-subtle);
+  --color-scam-border: var(--scam-border);
+
+  --color-unknown-text: var(--unknown-text);
+  --color-unknown-fill: var(--unknown-fill);
+  --color-unknown-subtle: var(--unknown-subtle);
+  --color-unknown-border: var(--unknown-border);
+
+  --font-sans: var(--font-plex-sans);
+  --font-display: var(--font-newsreader);
+  --font-mono: var(--font-plex-mono);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+}
+
+* {
+  border-color: var(--border-default);
+}
+
+:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes row-settle {
+  from {
+    opacity: 0;
+    transform: translateY(3px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse-quiet {
+  0%,
+  100% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.animate-rise-in {
+  animation: rise-in 420ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.animate-row-settle {
+  animation: row-settle 260ms ease-out both;
+}
+
+.animate-pulse-quiet {
+  animation: pulse-quiet 1.6s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-rise-in,
+  .animate-row-settle,
+  .animate-pulse-quiet {
+    animation: none !important;
+  }
+}
